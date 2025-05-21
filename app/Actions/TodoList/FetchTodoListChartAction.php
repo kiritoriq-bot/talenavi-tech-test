@@ -72,26 +72,28 @@ class FetchTodoListChartAction extends Action
                 SELECT assignee, COUNT(id) as total
                 FROM todo_lists
                 WHERE assignee IN (SELECT assignee FROM _assignees)
+                GROUP BY assignee
             )
             , _total_pending_todos AS (
                 SELECT assignee, COUNT(id) as total
                 FROM todo_lists
                 WHERE assignee IN (SELECT assignee FROM _assignees)
                 AND status = "pending"
+                GROUP BY assignee
             )
             , _total_timetracked_completed_todos AS (
             	SELECT assignee, SUM(time_tracked) as total
                 FROM todo_lists
                 WHERE assignee IN (SELECT assignee FROM _assignees)
-                GROUP BY assignee
                 AND status = "completed"
+                GROUP BY assignee
             )
             , _merge AS (
                 SELECT
-                    tt.assignee, tt.total as total_todos, tpt.total as total_pending_todos, ttcd.total as total_timetracked
+                    tt.assignee, tt.total as total_todos, COALESCE(tpt.total,0) as total_pending_todos, COALESCE(ttcd.total,0) as total_timetracked
                 FROM _total_todos tt
-                JOIN _total_pending_todos tpt ON true
-                JOIN _total_timetracked_completed_todos ttcd ON true
+                LEFT JOIN _total_pending_todos tpt ON true
+                LEFT JOIN _total_timetracked_completed_todos ttcd ON true
             )
             SELECT assignee, total_todos, total_pending_todos, total_timetracked FROM _merge
         ');
