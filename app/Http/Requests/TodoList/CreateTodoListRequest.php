@@ -25,7 +25,7 @@ class CreateTodoListRequest extends FormRequest
             'due_date' => [
                 'required',
                 'date_format:Y-m-d',
-                'after:today'
+                'after_or_equal:today'
             ],
             'time_tracked' => [
                 'nullable',
